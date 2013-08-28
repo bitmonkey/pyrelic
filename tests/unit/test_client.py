@@ -16,7 +16,8 @@ from ..fixtures.sample_responses import (METRIC_DATA_SAMPLE,
                                          METRIC_NAMES_SAMPLE,
                                          VIEW_APPLICATIONS_SAMPLE,
                                          THRESHOLD_VALUES_SAMPLE,
-                                         DELETE_APPLICATION_SUCCESS_SAMPLE
+                                         DELETE_APPLICATION_SUCCESS_SAMPLE,
+                                         VIEW_OR_FIND_SERVERS_SAMPLE,
                                          )
 
 NEW_RELIC_REGEX = re.compile(".*.newrelic.com/.*")
@@ -202,3 +203,15 @@ def test_delete_applications():
     # Then I should receive an array of Threshold values
     result = c.delete_applications({"app_id": "1234"})
     result.should.have.length_of(1)
+
+
+@httpretty.activate
+def test_view_servers():
+    httpretty.register_uri(httpretty.GET,
+                           NEW_RELIC_REGEX,
+                           body=VIEW_OR_FIND_SERVERS_SAMPLE,
+                           status=200)
+    c = Client(account_id="1", api_key="2")
+    result = c.view_servers()
+    result.should.have.length_of(3)
+

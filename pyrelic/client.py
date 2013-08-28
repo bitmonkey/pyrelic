@@ -14,6 +14,7 @@ from .application import Application
 from .base_client import BaseClient
 from .metric import Metric
 from .threshold import Threshold
+from .server import Server
 
 
 class Client(BaseClient):
@@ -317,3 +318,76 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
                 properties[tag] = text
             thresholds.append(Threshold(properties))
         return thresholds
+
+    def _parse_server_details(self, response_object):
+        servers = []
+        for svr in response_object.findall('.//server'):
+            servers.append(
+                Server(
+                    properties=dict(
+                        (node.tag, node.text) for node in (svr.getchildren())
+                    )
+                )
+            )
+        return servers
+
+    def view_servers(self):
+        """
+        Requires: account ID
+        Method: Get
+        Endpoint: api.newrelic.com
+        Restrictions: ???
+        Errors: 403 Invalid API key, 422 Invalid Parameters
+        Returns: A list of Server objects, each will have properties
+                 corresponding to the hostname, the dashboard url for the
+                 server and it's ID.
+        """
+        endpoint = "https://api.newrelic.com"
+        uri = "{endpoint}/api/v1/accounts/{account_id}/servers.xml".format(
+            endpoint=endpoint, account_id=self.account_id
+        )
+        response = self._make_get_request(uri)
+        return self._parse_server_details(response)
+
+    def find_servers(self, name=''):
+        """
+        Requires: account ID, name (optional string contained in hostname)
+        Method: POST
+        Endpoint: api.newrelic.com
+        Restrictions: ???
+        Errors: 403 Invalid API key, 422 Invalid Parameters
+        Returns: A list of matching Server objects, each will have properties
+                 corresponding to the hostname, the dashboard url for the
+                 server and it's ID.
+        """
+        endpoint = "https://api.newrelic.com"
+        uri = (
+            "{endpoint}/api/v1/accounts/{account_id}"
+            "/servers/find.xml"
+        ).format(endpoint=endpoint, account_id=self.account_id)
+        response = self._make_post_request(uri, {'name': name})
+        return self._parse_server_details(response)
+
+    def delete_server(self, server_id):
+        """
+        Requires: account ID, Server ID
+        Method: POST
+        Endpoint: api.newrelic.com
+        Restrictions: ???
+        Errors: 403 Invalid API key
+        Returns: A boolean indicating whether the delete request was successful
+        """
+        endpoint = "https://api.newrelic.com"
+        uri = (
+            "{endpoint}/api/v1/accounts/{account_id}/servers/{server_id}"
+        ).format(
+            endpoint=endpoint, account_id=self.account_id, server_id=server_id)
+        response = self._delete_request(uri)
+        result = response.find('.//server/result')
+        if result.text == 'deleted':
+            return True
+
+        return False
+
+
+
