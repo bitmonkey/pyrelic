@@ -1,7 +1,6 @@
 class NewRelicApiException(Exception):
     def __init__(self, message):
-        super(NewRelicApiException, self).__init__()
-        print message
+        super(NewRelicApiException, self).__init__(message)
 
 
 class NewRelicInvalidApiKeyException(NewRelicApiException):
@@ -32,3 +31,5 @@ class NewRelicApiRateLimitException(NewRelicApiException):
     def __init__(self, message):
         super(NewRelicApiRateLimitException, self).__init__(message)
         self.timeout = message
+
+

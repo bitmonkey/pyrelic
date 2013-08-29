@@ -48,7 +48,7 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
 
         self.account_id = account_id
         self.api_key = api_key
-        self.headers = {'x-api-key': api_key}
+        self.headers = {'x-api-key': api_key, 'Accept': 'application/xml'}
         self._parser = self._parse_xml
 
     def _parse_xml(self, response):
@@ -382,12 +382,14 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
             "{endpoint}/api/v1/accounts/{account_id}/servers/{server_id}"
         ).format(
             endpoint=endpoint, account_id=self.account_id, server_id=server_id)
-        response = self._delete_request(uri)
+
+        response = self._make_delete_request(uri)
         result = response.find('.//server/result')
         if result.text == 'deleted':
             return True
+        elif result.text != 'failed':
+            raise NewRelicApiException(
+                'Unknown server deletion status: %s' % result.text
+            )
 
         return False
-
-
-

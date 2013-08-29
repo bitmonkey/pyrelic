@@ -18,6 +18,9 @@ from ..fixtures.sample_responses import (METRIC_DATA_SAMPLE,
                                          THRESHOLD_VALUES_SAMPLE,
                                          DELETE_APPLICATION_SUCCESS_SAMPLE,
                                          VIEW_OR_FIND_SERVERS_SAMPLE,
+                                         DELETE_SERVER_SUCCESS_SAMPLE,
+                                         DELETE_SERVER_FAILURE_SAMPLE,
+                                         DELETE_SERVER_UNKNOWN_STATE_SAMPLE
                                          )
 
 NEW_RELIC_REGEX = re.compile(".*.newrelic.com/.*")
@@ -214,4 +217,59 @@ def test_view_servers():
     c = Client(account_id="1", api_key="2")
     result = c.view_servers()
     result.should.have.length_of(3)
+    for count, svr in enumerate(result):
+        svr.id.should.equal('%s' % (count + 1))
+        svr.hostname.should.equal('host%s' % (count + 1))
+        svr.overview_url.should.equal(
+            'https://rpm.newrelic.com/accounts/1/servers/%s' % (count + 1)
+        )
 
+
+@httpretty.activate
+def test_find_servers():
+    httpretty.register_uri(httpretty.POST,
+                           NEW_RELIC_REGEX,
+                           body=VIEW_OR_FIND_SERVERS_SAMPLE,
+                           status=200)
+    c = Client(account_id="1", api_key="2")
+    result = c.find_servers(name='')
+    result.should.have.length_of(3)
+    for count, svr in enumerate(result):
+        svr.id.should.equal('%s' % (count + 1))
+        svr.hostname.should.equal('host%s' % (count + 1))
+        svr.overview_url.should.equal(
+            'https://rpm.newrelic.com/accounts/1/servers/%s' % (count + 1)
+        )
+
+
+@httpretty.activate
+def test_delete_server():
+    httpretty.register_uri(
+        httpretty.DELETE,
+        NEW_RELIC_REGEX,
+        responses=[
+            httpretty.Response(
+                body=DELETE_SERVER_SUCCESS_SAMPLE,
+                status=200
+            ),
+            httpretty.Response(
+                body=DELETE_SERVER_FAILURE_SAMPLE,
+                status=200
+            ),
+            httpretty.Response(
+                body=DELETE_SERVER_UNKNOWN_STATE_SAMPLE,
+                status=200
+            ),
+        ]
+    )
+    c = Client(account_id="1", api_key="2")
+
+    result = c.delete_server(server_id=1)
+    result.should.be.equal(True)
+
+    result = c.delete_server(server_id=1)
+    result.should.be.equal(False)
+
+    c.delete_server.when.called_with(server_id=1).should.throw(
+        NewRelicApiException, 'Unknown server deletion status: w00t'
+    )

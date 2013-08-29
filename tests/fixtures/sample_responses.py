@@ -113,3 +113,30 @@ VIEW_OR_FIND_SERVERS_SAMPLE = """
   </server>
 </servers>
 """
+
+DELETE_SERVER_SUCCESS_SAMPLE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<servers type="array">
+  <server name="" id="1">
+    <result>deleted</result>
+  </server>
+</servers>
+"""
+
+DELETE_SERVER_FAILURE_SAMPLE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<servers type="array">
+  <server name="" id="1">
+    <result>failed</result>
+  </server>
+</servers>
+"""
+
+DELETE_SERVER_UNKNOWN_STATE_SAMPLE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<servers type="array">
+  <server name="" id="1">
+    <result>w00t</result>
+  </server>
+</servers>
+"""
