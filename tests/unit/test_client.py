@@ -20,7 +20,9 @@ from ..fixtures.sample_responses import (METRIC_DATA_SAMPLE,
                                          VIEW_OR_FIND_SERVERS_SAMPLE,
                                          DELETE_SERVER_SUCCESS_SAMPLE,
                                          DELETE_SERVER_FAILURE_SAMPLE,
-                                         DELETE_SERVER_UNKNOWN_STATE_SAMPLE
+                                         DELETE_SERVER_UNKNOWN_STATE_SAMPLE,
+                                         VIEW_SERVERS_SETTINGS_SAMPLE,
+                                         UPDATE_SERVER_SETTINGS_SAMPLE
                                          )
 
 NEW_RELIC_REGEX = re.compile(".*.newrelic.com/.*")
@@ -273,3 +275,31 @@ def test_delete_server():
     c.delete_server.when.called_with(server_id=1).should.throw(
         NewRelicApiException, 'Unknown server deletion status: w00t'
     )
+
+
+@httpretty.activate
+def test_view_servers_settings():
+    httpretty.register_uri(httpretty.GET,
+                           NEW_RELIC_REGEX,
+                           body=VIEW_SERVERS_SETTINGS_SAMPLE,
+                           status=200)
+
+    c = Client(account_id="1", api_key="2")
+
+    result = c.view_servers_settings()
+    result.should.have.length_of(2)
+    result[1]['display-name'].should.equal('My 2nd Hostname')
+
+
+@httpretty.activate
+def test_update_server_settings():
+    httpretty.register_uri(httpretty.PUT,
+                           NEW_RELIC_REGEX,
+                           body=UPDATE_SERVER_SETTINGS_SAMPLE,
+                           status=200)
+
+    c = Client(account_id="1", api_key="2")
+
+    result = c.update_server_settings(123, {'display-name': 'Changed Name'})
+    result.should.be.a('dict')
+    result['display-name'].should.equal('Changed Name')

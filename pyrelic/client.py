@@ -48,7 +48,7 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
 
         self.account_id = account_id
         self.api_key = api_key
-        self.headers = {'x-api-key': api_key, 'Accept': 'application/xml'}
+        self.headers = {'x-api-key': api_key}
         self._parser = self._parse_xml
 
     def _parse_xml(self, response):
@@ -379,7 +379,7 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
         """
         endpoint = "https://api.newrelic.com"
         uri = (
-            "{endpoint}/api/v1/accounts/{account_id}/servers/{server_id}"
+            "{endpoint}/api/v1/accounts/{account_id}/servers/{server_id}.xml"
         ).format(
             endpoint=endpoint, account_id=self.account_id, server_id=server_id)
 
@@ -393,3 +393,35 @@ client = pyrelic.Client(account_id='12345', api_key='1234567890abcdef123456789')
             )
 
         return False
+
+    def view_servers_settings(self):
+        endpoint = "https://api.newrelic.com"
+        uri = (
+            "{endpoint}/api/v1/accounts/{account_id}/server_settings.xml"
+        ).format(endpoint=endpoint, account_id=self.account_id)
+
+        response = self._make_get_request(uri)
+
+        servers = []
+        for svr in response.findall('./server-setting'):
+            servers.append(
+                dict(
+                    ((node.tag, node.text) for node in svr.findall('*'))
+                )
+            )
+        return servers
+
+    def update_server_settings(self, server_id, settings={}):
+        endpoint = "https://api.newrelic.com"
+        uri = (
+            "{endpoint}/api/v1/accounts/{account_id}/server_settings/"
+            "{server_id}.xml"
+        ).format(
+            endpoint=endpoint, account_id=self.account_id, server_id=server_id)
+
+        response = self._make_put_request(uri, settings)
+        settings = dict(
+            ((node.tag, node.text) for node in response.findall('*'))
+        )
+        return settings
+

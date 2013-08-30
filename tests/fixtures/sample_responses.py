@@ -140,3 +140,35 @@ DELETE_SERVER_UNKNOWN_STATE_SAMPLE = """
   </server>
 </servers>
 """
+
+VIEW_SERVERS_SETTINGS_SAMPLE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<servers-settings type="array">
+  <server-setting>
+    <server-id type="integer">111</server-id>
+    <hostname>first-hostname.example.com</hostname>
+    <alerts-enabled>false</alerts-enabled>
+    <display-name>My First Hostname</display-name>
+    <url>https://api.newrelic.com/api/v1/accounts/1/server_settings/111</url>
+  </server-setting>
+  <server-setting>
+    <server-id type="integer">222</server-id>
+    <hostname>second-hostname.example.com</hostname>
+    <alerts-enabled>false</alerts-enabled>
+    <display-name>My 2nd Hostname</display-name>
+    <url>https://api.newrelic.com/api/v1/accounts/1/server_settings/222</url>
+  </server-setting>
+</servers-settings>
+"""
+
+UPDATE_SERVER_SETTINGS_SAMPLE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<server-setting>
+  <server-id type="integer">222</server-id>
+  <hostname>my-hostname.example.com</hostname>
+  <alerts-enabled>true</alerts-enabled>
+  <display-name>Changed Name</display-name>
+  <url>https://api.newrelic.com/api/v1/accounts/1/server_settings/222</url>
+</server-setting>
+"""
+
